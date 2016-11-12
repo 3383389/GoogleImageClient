@@ -2,16 +2,16 @@ package com.example.android.lesson5googleimg.EventBus;
 
 public class MessageEvent {
     public final Messages message;
-    public final String query;
+    public final String str;
 
     public MessageEvent(Messages message, String q) {
         this.message = message;
-        this.query = q;
+        this.str = q;
     }
 
     public MessageEvent(Messages message) {
         this.message = message;
-        this.query = null;
+        this.str = null;
     }
 
 }

@@ -30,10 +30,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
     }
 
     @Override
-    public void onBindViewHolder(RecyclerViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerViewHolder holder, final int position) {
         holder.img.setImageBitmap(null);
         // get URL of image
-        String url = imageAdapter.getResults().getLink(position);
+        final String url = imageAdapter.getResults().getLink(position);
         // get img from cache
         Bitmap bitmapFromCache = imageAdapter.getCache(url);
         Log.v("frag", "bitmapFromCache = " + position + url);
@@ -43,7 +43,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
             holder.img.setImageBitmap(bitmapFromCache);
             Log.v("frag", "set bitmap from Cache" + " on position = " + position + " link " + url);
         } else if (!imageAdapter.getResults().items.get(position).isLoading) {
-            new DownloadImg().execute(imageAdapter.getResults().getLink(position));
+            new DownloadImg(false).execute(url);
             imageAdapter.getResults().items.get(position).isLoading = true;
         }
 
@@ -51,6 +51,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
         if (position == getItemCount() - 1) {
             EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageAdapter.mQuery));
         }
+
+        holder.img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.v("frag", "click on photo ok " + " on position = " + position + "url = " + url);
+                new DownloadImg(true).execute(url);
+                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT));
+            }
+        });
     }
 
     @Override

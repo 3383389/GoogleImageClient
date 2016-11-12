@@ -14,6 +14,7 @@ import com.example.android.lesson5googleimg.EventBus.MessageEvent;
 import com.example.android.lesson5googleimg.EventBus.Messages;
 import com.example.android.lesson5googleimg.Fragment.SearchFragment;
 import com.example.android.lesson5googleimg.Fragment.StartFragment;
+import com.example.android.lesson5googleimg.Fragment.ViewImageFragment;
 import com.example.android.lesson5googleimg.R;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -29,13 +30,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ImageAdapter.initImageAdapter(this);
+
+        if (savedInstanceState == null) {
+            showFragment(Messages.OPEN_START_FRAGMENT);
+            Log.v("frag", "OPEN_START_FRAGMENT");
+        } else {
+            Log.v("frag", " NOT  OPEN_START_FRAGMENT");
+
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-        showFragment(Messages.OPEN_START_FRAGMENT);
     }
 
     @Override
@@ -56,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
             case OPEN_START_FRAGMENT:
                 fragment = new StartFragment();
                 break;
+            case OPEN_VIEW_IMG_FRAGMENT:
+                fragment = new ViewImageFragment();
+                Log.v("frag", "event open view fragment");
+                break;
         }
 
         fragmentTransaction.replace(R.id.main_activity_container, fragment)
@@ -74,11 +86,14 @@ public class MainActivity extends AppCompatActivity {
             case OPEN_START_FRAGMENT:
                 showFragment(event.message);
                 break;
+            case OPEN_VIEW_IMG_FRAGMENT:
+                showFragment(event.message);
+                break;
             case SEARCH_IMG:
                 if (checkConnection()) {
                     Log.v("frag", "connection ok");
                     try {
-                        ImageAdapter.getInstance().searchResults(event.query);
+                        ImageAdapter.getInstance().searchResults(event.str);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     } catch (IOException e) {

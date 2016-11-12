@@ -1,9 +1,7 @@
 package com.example.android.lesson5googleimg.Fragment;
 
 
-import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
 import com.example.android.lesson5googleimg.Adapter.RecyclerViewAdapter;
 import com.example.android.lesson5googleimg.EventBus.MessageEvent;
 import com.example.android.lesson5googleimg.EventBus.Messages;
@@ -34,6 +35,11 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         // Required empty public constructor
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,12 +52,20 @@ public class StartFragment extends Fragment implements View.OnClickListener {
 
         mFindButton.setOnClickListener(this);
 
+        setSearchQuery();
         initRecyclerView(rootView);
         showImages();
 
         Log.v("frag", "start onCreateView");
 
         return rootView;
+    }
+
+    private void setSearchQuery() {
+        String searchQuery = ImageAdapter.getInstance().mQuery;
+        if (searchQuery != null) {
+            result.setText(searchQuery.replaceAll("\\+", " "));
+        }
     }
 
     private void initRecyclerView(View rootView) {

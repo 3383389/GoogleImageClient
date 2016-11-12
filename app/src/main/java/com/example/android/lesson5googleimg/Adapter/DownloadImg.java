@@ -15,16 +15,19 @@ import java.io.IOException;
 
 class DownloadImg extends AsyncTask<String, Void, Bitmap> {
 
-    String url;
+    private String url;
+    private Boolean isFullImage;
 
-    DownloadImg() {
-        Log.v("frag", "DownloadImg  link = " + url);
+    DownloadImg(Boolean isFull) {
+        this.isFullImage = isFull;
+
     }
 
     @Override
     protected Bitmap doInBackground(String... params) {
         url = params[0];
         Bitmap b = null;
+        Log.v("frag", "doInBackground  link = " + url);
 
         // download and decode bitmap from url
         try {
@@ -38,17 +41,25 @@ class DownloadImg extends AsyncTask<String, Void, Bitmap> {
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         if (bitmap != null) {
-            Log.v("frag", "put in cache and update " + url);
-            // put bitmap to cache and update recycler view
-            ImageAdapter.getInstance().putToCache(bitmap, url);
-            EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
+            if (!isFullImage) {
+                Log.v("frag", "put in cache and update " + url);
+                // put bitmap to cache and update recycler view
+                ImageAdapter.getInstance().putToCache(bitmap, url);
+                EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
+            } else {
+                ImageAdapter.getInstance().putToCache(bitmap, url + "full");
+                EventBus.getDefault().post(new MessageEvent(Messages.SET_FULL_IMAGE, url + "full"));
+                Log.v("frag", "onPostExecute ok " + url);
+            }
         }
     }
 
-    private static Bitmap decodeSampledBitmapFromUrl(String url) throws IOException {
+    private Bitmap decodeSampledBitmapFromUrl(String url) throws IOException {
 
-        final int reqWidth = 200;
-        final int reqHeight = 200;
+        final int RECYCLER_WIDTH = 200;
+        final int RECYCLER_HEIGHT = 200;
+        final int FULL_WIDTH = 800;
+        final int FULL_HEIGHT = 800;
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -56,14 +67,18 @@ class DownloadImg extends AsyncTask<String, Void, Bitmap> {
         BitmapFactory.decodeStream(new java.net.URL(url).openStream(), null, options);
 
         // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        if (isFullImage) {
+            options.inSampleSize = calculateInSampleSize(options, FULL_WIDTH, FULL_HEIGHT);
+        } else {
+            options.inSampleSize = calculateInSampleSize(options, RECYCLER_WIDTH, RECYCLER_HEIGHT);
+        }
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeStream(new java.net.URL(url).openStream(), null, options);
     }
 
-    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;

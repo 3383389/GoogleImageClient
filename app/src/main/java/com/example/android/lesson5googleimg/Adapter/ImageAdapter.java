@@ -7,7 +7,7 @@ import android.util.SparseArray;
 import com.example.android.lesson5googleimg.EventBus.MessageEvent;
 import com.example.android.lesson5googleimg.EventBus.Messages;
 import com.example.android.lesson5googleimg.Utils.DiskCache;
-import com.example.android.lesson5googleimg.Utils.GResults;
+import com.example.android.lesson5googleimg.Models.GResults;
 import com.google.gson.Gson;
 import org.greenrobot.eventbus.EventBus;
 import java.io.BufferedReader;
@@ -52,23 +52,26 @@ public class ImageAdapter {
 
     public void searchResults(String query) throws URISyntaxException, IOException {
 
-        // if query repeat - increment startIndex
+        // if str repeat - increment startIndex
         if (mQuery != null && mQuery.equalsIgnoreCase(query)) {
             startIndex += 10;
             Log.v("frag", "startIndex = " + startIndex);
-            Log.v("frag", "mQuery = " + mQuery + " query = " + query);
+            Log.v("frag", "mQuery = " + mQuery + " str = " + query);
         } else {
-            Log.v("frag", "New searchResults ... mQuery = " + mQuery + " query = " + query);
+            Log.v("frag", "New searchResults ... mQuery = " + mQuery + " str = " + query);
             mQuery = query;
             startIndex = 1;
             Log.v("frag", "images clear");
         }
 
-        URL url = new URL("https://www.googleapis.com/customsearch/v1?key="
-                + KEY + "&cx="
-                + CX + "&q=" + query + "&searchType="
-                + SEARCH_TYPE + "&start="
-                + startIndex + "&alt=json");
+        URL url = new URL(
+                "https://www.googleapis.com/customsearch/v1?key=" + KEY
+                + "&cx=" + CX
+                + "&q=" + query
+                + "&searchType=" + SEARCH_TYPE
+                + "&start=" + startIndex
+                + "&alt=json"
+        );
 
         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -83,17 +86,19 @@ public class ImageAdapter {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                tempRes = new Gson().fromJson(br, GResults.class);
-                Log.v("frag", "searchResults do");
+                try {
+                    tempRes = new Gson().fromJson(br, GResults.class);
+                    Log.v("frag", "searchResults do");
+                    // если это новый запрос - заменяем результаты,
+                    // если запрос повторяется добавляем результаты к существующим
+                    if (startIndex > 1)
+                        results.getItems().addAll(tempRes.getItems());
+                    else
+                        results = tempRes;
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
 
-                Log.v("frag", "results = " + results.getItems() + " and TempRes = " + tempRes);
-
-                // если это новый запрос - заменяем результаты,
-                // если запрос повторяется добавляем результаты к существующим
-                if (startIndex > 1)
-                    results.getItems().addAll(tempRes.getItems());
-                else
-                    results = tempRes;
                 conn.disconnect();
                 EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
             }
@@ -103,7 +108,7 @@ public class ImageAdapter {
 
     }
 
-    Bitmap getCache(String url) {
+    public Bitmap getCache(String url) {
         return diskCache.getBitmapFromDiskCache(getKey(url));
     }
 
