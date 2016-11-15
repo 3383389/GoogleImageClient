@@ -1,6 +1,7 @@
 package com.example.android.lesson5googleimg.Adapter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.SparseArray;
@@ -17,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+
 public class ImageAdapter {
 
     //private final String KEY = "AIzaSyA8Lls-n0MJnRmi1dOWrTyjhTnt-g2IjKM";
@@ -24,18 +26,24 @@ public class ImageAdapter {
     //private final String CX = "010292657076463166936:6zp0sbuhuo4";
     private final String CX = "010292657076463166936:zsfpx8vl6v4";
     private final String SEARCH_TYPE = "image";
+    private final String SHARED_PREF = "com.example.android.lesson5googleimg.preferences";
 
     private static ImageAdapter mInstance;
     private GResults results;
     private DiskCache diskCache;
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
     private SparseArray<Bitmap> images;
     private int startIndex;
     public String mQuery;
+    public Boolean NETConnection;
 
     private ImageAdapter(Context context) {
         results = new GResults();
         diskCache = new DiskCache(context);
         images = new SparseArray<>();
+        pref = context.getSharedPreferences(SHARED_PREF, Context.MODE_PRIVATE);
+        editor = pref.edit();
     }
 
     public static ImageAdapter initImageAdapter(Context context) {
@@ -66,11 +74,11 @@ public class ImageAdapter {
 
         URL url = new URL(
                 "https://www.googleapis.com/customsearch/v1?key=" + KEY
-                + "&cx=" + CX
-                + "&q=" + query
-                + "&searchType=" + SEARCH_TYPE
-                + "&start=" + startIndex
-                + "&alt=json"
+                        + "&cx=" + CX
+                        + "&q=" + query
+                        + "&searchType=" + SEARCH_TYPE
+                        + "&start=" + startIndex
+                        + "&alt=json"
         );
 
         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -101,11 +109,29 @@ public class ImageAdapter {
 
                 conn.disconnect();
                 EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
+                saveResultsToPref();
             }
 
         }).start();
 
 
+    }
+
+    private void saveResultsToPref() {
+        editor.putString(mQuery, new Gson().toJson(results));
+        editor.commit();
+        Log.v("frag", "saveResultsToPref do = ");
+    }
+
+    // if no connection
+    public void getResultsFromPref(String query) {
+        String resSet = pref.getString(query, null);
+        if (resSet != null) {
+            results = new Gson().fromJson(resSet, GResults.class);
+            EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
+            mQuery = query;
+            NETConnection = false;
+        }
     }
 
     public Bitmap getCache(String url) {
@@ -114,10 +140,6 @@ public class ImageAdapter {
 
     void putToCache(Bitmap b, String url) {
         diskCache.put(getKey(url), b);
-    }
-
-    public SparseArray<Bitmap> getImages() {
-        return images;
     }
 
     GResults getResults() {

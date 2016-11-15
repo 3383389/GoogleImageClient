@@ -11,6 +11,5 @@ public enum Messages {
     SEARCH_IMG,
     UPDATE_RECYCLER_VIEW,
     SET_FULL_IMAGE,
-    TOAST
 
 }

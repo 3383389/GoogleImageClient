@@ -42,22 +42,24 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
         if (bitmapFromCache != null) {
             holder.img.setImageBitmap(bitmapFromCache);
             Log.v("frag", "set bitmap from Cache" + " on position = " + position + " link " + url);
-        } else if (!imageAdapter.getResults().items.get(position).isLoading) {
+        } else if (!imageAdapter.getResults().items.get(position).isLoading && imageAdapter.NETConnection) {
             new DownloadImg(false).execute(url);
             imageAdapter.getResults().items.get(position).isLoading = true;
         }
 
         // if and of list - get more photos
-        if (position == getItemCount() - 1) {
+        if (position == getItemCount() - 1 && imageAdapter.NETConnection) {
             EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageAdapter.mQuery));
         }
 
+        // if click on photo - run loading full image
         holder.img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.v("frag", "click on photo ok " + " on position = " + position + "url = " + url);
-                new DownloadImg(true).execute(url);
                 EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT));
+                new DownloadImg(true).execute(url);
+
             }
         });
     }

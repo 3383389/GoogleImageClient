@@ -13,14 +13,13 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.IOException;
 
 
-class DownloadImg extends AsyncTask<String, Void, Bitmap> {
+public class DownloadImg extends AsyncTask<String, Void, Bitmap> {
 
     private String url;
     private Boolean isFullImage;
 
-    DownloadImg(Boolean isFull) {
+    public DownloadImg(Boolean isFull) {
         this.isFullImage = isFull;
-
     }
 
     @Override

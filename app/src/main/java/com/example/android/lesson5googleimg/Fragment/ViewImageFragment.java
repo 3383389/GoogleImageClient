@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.lesson5googleimg.Adapter.DownloadImg;
 import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
 import com.example.android.lesson5googleimg.EventBus.MessageEvent;
 import com.example.android.lesson5googleimg.R;
@@ -43,8 +44,6 @@ public class ViewImageFragment extends Fragment {
 
         fullImage = (ImageView) rootView.findViewById(R.id.full_img);
 
-        setFullImage();
-
         Log.v("frag", "start ViewImageFragment");
         setRetainInstance(true);
         return rootView;
@@ -52,7 +51,7 @@ public class ViewImageFragment extends Fragment {
 
     @Subscribe
     public void onMessageEvent(final MessageEvent event) {
-        Log.v("serv", "event ok");
+
         switch (event.message) {
             case SET_FULL_IMAGE:
                 url = event.str;
@@ -62,6 +61,7 @@ public class ViewImageFragment extends Fragment {
     }
 
     public void setFullImage() {
+        Log.v("serv", "event SET_FULL_IMAGE url = " + url);
         if (url != null) {
             bitmap = ImageAdapter.getInstance().getCache(url);
             if (bitmap != null) {

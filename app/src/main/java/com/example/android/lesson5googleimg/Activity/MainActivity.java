@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+
 import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
 import com.example.android.lesson5googleimg.EventBus.MessageEvent;
 import com.example.android.lesson5googleimg.EventBus.Messages;
@@ -16,8 +17,10 @@ import com.example.android.lesson5googleimg.Fragment.SearchFragment;
 import com.example.android.lesson5googleimg.Fragment.StartFragment;
 import com.example.android.lesson5googleimg.Fragment.ViewImageFragment;
 import com.example.android.lesson5googleimg.R;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -70,9 +73,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        fragmentTransaction.replace(R.id.main_activity_container, fragment)
-                .addToBackStack("back")
-                .commit();
+        fragmentTransaction.replace(R.id.main_activity_container, fragment);
+        if (!(message == Messages.OPEN_START_FRAGMENT)) {
+            fragmentTransaction.addToBackStack("back");
+        }
+        fragmentTransaction.commit();
     }
 
 
@@ -102,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.v("frag", "send searchResults ok");
                 } else {
                     Toast.makeText(this, "Проверьте соединение с интернетом", Toast.LENGTH_SHORT).show();
+                    ImageAdapter.getInstance().getResultsFromPref(event.str);
                 }
                 break;
         }
@@ -111,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
+            ImageAdapter.getInstance().NETConnection = true;
             return true;
         } else {
             return false;
