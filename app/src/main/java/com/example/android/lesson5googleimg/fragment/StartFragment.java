@@ -83,7 +83,7 @@ public class StartFragment extends Fragment implements View.OnClickListener {
     }
 
     private void showImages() {
-        mAdapter = new RecyclerViewAdapter();
+        mAdapter = new RecyclerViewAdapter(getContext());
         mRecyclerView.setAdapter(mAdapter);
     }
 

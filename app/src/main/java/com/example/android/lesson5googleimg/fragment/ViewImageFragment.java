@@ -1,8 +1,6 @@
 package com.example.android.lesson5googleimg.fragment;
 
 
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -10,19 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
-import com.example.android.lesson5googleimg.provider.DownloadImg;
 import com.example.android.lesson5googleimg.provider.ImageProvider;
-import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.R;
+import com.squareup.picasso.Picasso;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 public class ViewImageFragment extends Fragment {
 
     ImageView fullImage;
-    Bitmap bitmap;
     String url;
     int pos;
 
@@ -53,42 +46,12 @@ public class ViewImageFragment extends Fragment {
         return rootView;
     }
 
-    @Subscribe
-    public void onMessageEvent(final MessageEvent event) {
-
-        switch (event.message) {
-            case SET_FULL_IMAGE:
-                url = event.str;
-                setFullImage();
-                break;
-        }
+    public void setFullImage() {
+        Picasso.with(getContext())
+                .load(url)
+                .fit()
+                .priority(Picasso.Priority.HIGH)
+                .centerCrop()
+                .into(fullImage);
     }
-
-    public boolean setFullImage() {
-        Log.v("frag", " SET_FULL_IMAGE url = " + url);
-        if (url != null) {
-            bitmap = ImageProvider.getInstance().getCache(url + "full");
-            if (bitmap != null) {
-                fullImage.setImageBitmap(bitmap);
-                return true;
-            } else {
-                new DownloadImg(true, pos).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-    }
-
-
 }

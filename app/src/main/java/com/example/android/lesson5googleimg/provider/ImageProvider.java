@@ -2,14 +2,11 @@ package com.example.android.lesson5googleimg.provider;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.util.Log;
 import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.utils.eventBus.Messages;
-import com.example.android.lesson5googleimg.utils.DiskCache;
 import com.example.android.lesson5googleimg.models.GResults;
 import com.google.gson.Gson;
 import org.greenrobot.eventbus.EventBus;
@@ -38,7 +35,6 @@ public class ImageProvider {
 
     private static ImageProvider mInstance;
     private GResults results;
-    private DiskCache diskCache;
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
     private int startIndex;
@@ -48,7 +44,6 @@ public class ImageProvider {
     private ImageProvider(Context context) {
         this.context = context;
         results = new GResults();
-        diskCache = new DiskCache(context);
         pref = context.getSharedPreferences(SHARED_PREF, Context.MODE_PRIVATE);
         editor = pref.edit();
     }
@@ -65,22 +60,6 @@ public class ImageProvider {
         return mInstance;
     }
 
-    public Bitmap getImage(int position) {
-        final String url = results.getLink(position);
-
-        // get img from cache
-        Bitmap bitmapFromCache = getCache(url);
-        Log.v("frag", "bitmapFromCache = " + position + url);
-
-        // if image exist in cache - set to holder, else load from internet and save in cache
-        if (bitmapFromCache != null) {
-            return bitmapFromCache;
-        } else if (!results.items.get(position).isLoading && checkConnection()) {
-            new DownloadImg(false, position).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
-            results.items.get(position).isLoading = true;
-        }
-        return null;
-    }
 
     public void searchResults(String query) throws URISyntaxException, IOException {
 
@@ -137,8 +116,6 @@ public class ImageProvider {
             }
 
         }).start();
-
-
     }
 
     private void saveResultsToPref() {
@@ -157,20 +134,8 @@ public class ImageProvider {
         }
     }
 
-    public Bitmap getCache(String url) {
-        return diskCache.getBitmapFromDiskCache(getKey(url));
-    }
-
-    public void putToCache(Bitmap b, String url) {
-        diskCache.put(getKey(url), b);
-    }
-
     public GResults getResults() {
         return results;
-    }
-
-    private String getKey(String url) {
-        return url.hashCode() + "";
     }
 
     public boolean checkConnection() {
