@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.Activity;
+package com.example.android.lesson5googleimg.activity;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -10,12 +10,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
-import com.example.android.lesson5googleimg.EventBus.Messages;
-import com.example.android.lesson5googleimg.Fragment.SearchFragment;
-import com.example.android.lesson5googleimg.Fragment.StartFragment;
-import com.example.android.lesson5googleimg.Fragment.ViewImageFragment;
+import com.example.android.lesson5googleimg.provider.ImageProvider;
+import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
+import com.example.android.lesson5googleimg.utils.eventBus.Messages;
+import com.example.android.lesson5googleimg.fragment.SearchFragment;
+import com.example.android.lesson5googleimg.fragment.StartFragment;
+import com.example.android.lesson5googleimg.fragment.ViewImageFragment;
 import com.example.android.lesson5googleimg.R;
 
 import org.greenrobot.eventbus.EventBus;
@@ -32,10 +32,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageAdapter.initImageAdapter(this);
+        ImageProvider.initImageAdapter(this);
 
         if (savedInstanceState == null) {
-            showFragment(Messages.OPEN_START_FRAGMENT);
+            showFragment(Messages.OPEN_START_FRAGMENT, null);
             Log.v("frag", "OPEN_START_FRAGMENT");
         } else {
             Log.v("frag", " NOT  OPEN_START_FRAGMENT");
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void showFragment(Messages message) {
+    public void showFragment(Messages message, Integer i) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = null;
@@ -69,6 +69,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case OPEN_VIEW_IMG_FRAGMENT:
                 fragment = new ViewImageFragment();
+                Bundle bundle = new Bundle();
+                bundle.putInt("position", i);
+                // set Fragmentclass Arguments
+                fragment.setArguments(bundle);
+
                 Log.v("frag", "event open view fragment");
                 break;
         }
@@ -86,19 +91,19 @@ public class MainActivity extends AppCompatActivity {
         Log.v("frag", "event ok");
         switch (event.message) {
             case OPEN_SEARCH_FRAGMENT:
-                showFragment(event.message);
+                showFragment(event.message, null);
                 break;
             case OPEN_START_FRAGMENT:
-                showFragment(event.message);
+                showFragment(event.message, null);
                 break;
             case OPEN_VIEW_IMG_FRAGMENT:
-                showFragment(event.message);
+                showFragment(event.message, event.position);
                 break;
             case SEARCH_IMG:
-                if (checkConnection()) {
+                if (ImageProvider.getInstance().checkConnection()) {
                     Log.v("frag", "connection ok");
                     try {
-                        ImageAdapter.getInstance().searchResults(event.str);
+                        ImageProvider.getInstance().searchResults(event.str);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -107,20 +112,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.v("frag", "send searchResults ok");
                 } else {
                     Toast.makeText(this, "Проверьте соединение с интернетом", Toast.LENGTH_SHORT).show();
-                    ImageAdapter.getInstance().getResultsFromPref(event.str);
+                    ImageProvider.getInstance().getResultsFromPref(event.str);
                 }
                 break;
-        }
-    }
-
-    public boolean checkConnection() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            ImageAdapter.getInstance().NETConnection = true;
-            return true;
-        } else {
-            return false;
         }
     }
 

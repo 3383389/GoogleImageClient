@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.Holder;
+package com.example.android.lesson5googleimg.holder;
 
 
 import android.support.v7.widget.RecyclerView;

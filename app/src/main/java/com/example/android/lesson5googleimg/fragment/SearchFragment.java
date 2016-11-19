@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.Fragment;
+package com.example.android.lesson5googleimg.fragment;
 
 
 import android.content.Context;
@@ -13,8 +13,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
-import com.example.android.lesson5googleimg.EventBus.Messages;
+import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
+import com.example.android.lesson5googleimg.utils.eventBus.Messages;
 import com.example.android.lesson5googleimg.R;
 import org.greenrobot.eventbus.EventBus;
 

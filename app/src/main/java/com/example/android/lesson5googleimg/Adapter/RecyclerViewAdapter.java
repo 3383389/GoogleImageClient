@@ -1,25 +1,26 @@
-package com.example.android.lesson5googleimg.Adapter;
+package com.example.android.lesson5googleimg.adapter;
 
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
-import com.example.android.lesson5googleimg.EventBus.Messages;
-import com.example.android.lesson5googleimg.Holder.RecyclerViewHolder;
+import com.example.android.lesson5googleimg.provider.ImageProvider;
+import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
+import com.example.android.lesson5googleimg.utils.eventBus.Messages;
+import com.example.android.lesson5googleimg.holder.RecyclerViewHolder;
 import com.example.android.lesson5googleimg.R;
 import org.greenrobot.eventbus.EventBus;
 
 
+
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
 
-    private ImageAdapter imageAdapter;
+    private ImageProvider imageProvider;
 
     public RecyclerViewAdapter() {
-        imageAdapter = ImageAdapter.getInstance();
+        imageProvider = ImageProvider.getInstance();
     }
 
 
@@ -32,40 +33,28 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, final int position) {
         holder.img.setImageBitmap(null);
-        // get URL of image
-        final String url = imageAdapter.getResults().getLink(position);
-        // get img from cache
-        Bitmap bitmapFromCache = imageAdapter.getCache(url);
-        Log.v("frag", "bitmapFromCache = " + position + url);
 
-        // if image exist in cache - set to holder, else load from internet and save in cache
-        if (bitmapFromCache != null) {
-            holder.img.setImageBitmap(bitmapFromCache);
-            Log.v("frag", "set bitmap from Cache" + " on position = " + position + " link " + url);
-        } else if (!imageAdapter.getResults().items.get(position).isLoading && imageAdapter.NETConnection) {
-            new DownloadImg(false).execute(url);
-            imageAdapter.getResults().items.get(position).isLoading = true;
-        }
-
-        // if and of list - get more photos
-        if (position == getItemCount() - 1 && imageAdapter.NETConnection) {
-            EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageAdapter.mQuery));
-        }
+        // set image
+        holder.img.setImageBitmap(imageProvider.getImage(position));
 
         // if click on photo - run loading full image
         holder.img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.v("frag", "click on photo ok " + " on position = " + position + "url = " + url);
-                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT));
-                new DownloadImg(true).execute(url);
-
+                Log.v("frag", "click on photo ok " + " on position = " + position);
+                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT, position));
             }
         });
+
+        // if and of list - get more photos
+        if (position == getItemCount() - 3 && imageProvider.checkConnection()) {
+            EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageProvider.mQuery));
+        }
+
     }
 
     @Override
     public int getItemCount() {
-        return imageAdapter.getResults().items == null ? 0 : imageAdapter.getResults().items.size();
+        return imageProvider.getResults().items == null ? 0 : imageProvider.getResults().items.size();
     }
 }

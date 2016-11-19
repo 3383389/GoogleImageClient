@@ -1,20 +1,19 @@
-package com.example.android.lesson5googleimg.Fragment;
+package com.example.android.lesson5googleimg.fragment;
 
 
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.example.android.lesson5googleimg.Adapter.DownloadImg;
-import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
+import com.example.android.lesson5googleimg.provider.DownloadImg;
+import com.example.android.lesson5googleimg.provider.ImageProvider;
+import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.R;
 
 import org.greenrobot.eventbus.EventBus;
@@ -25,6 +24,7 @@ public class ViewImageFragment extends Fragment {
     ImageView fullImage;
     Bitmap bitmap;
     String url;
+    int pos;
 
     public ViewImageFragment() {
         // Required empty public constructor
@@ -44,7 +44,11 @@ public class ViewImageFragment extends Fragment {
 
         fullImage = (ImageView) rootView.findViewById(R.id.full_img);
 
-        Log.v("frag", "start ViewImageFragment");
+        pos = getArguments().getInt("position");
+        url = ImageProvider.getInstance().getResults().getLink(pos);
+
+        setFullImage();
+        Log.v("frag", "start ViewImageFragment " + url);
         setRetainInstance(true);
         return rootView;
     }
@@ -60,28 +64,30 @@ public class ViewImageFragment extends Fragment {
         }
     }
 
-    public void setFullImage() {
-        Log.v("serv", "event SET_FULL_IMAGE url = " + url);
+    public boolean setFullImage() {
+        Log.v("frag", " SET_FULL_IMAGE url = " + url);
         if (url != null) {
-            bitmap = ImageAdapter.getInstance().getCache(url);
+            bitmap = ImageProvider.getInstance().getCache(url + "full");
             if (bitmap != null) {
                 fullImage.setImageBitmap(bitmap);
+                return true;
+            } else {
+                new DownloadImg(true, pos).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
             }
         }
+        return false;
     }
 
     @Override
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-        Log.v("frag", "start onStart");
     }
 
     @Override
     public void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
-        Log.v("frag", "start onStop");
     }
 
 

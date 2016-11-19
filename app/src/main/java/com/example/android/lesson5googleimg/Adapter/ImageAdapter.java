@@ -1,153 +1,55 @@
-package com.example.android.lesson5googleimg.Adapter;
+package com.example.android.lesson5googleimg.adapter;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.util.Log;
-import android.util.SparseArray;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
-import com.example.android.lesson5googleimg.EventBus.Messages;
-import com.example.android.lesson5googleimg.Utils.DiskCache;
-import com.example.android.lesson5googleimg.Models.GResults;
-import com.google.gson.Gson;
-import org.greenrobot.eventbus.EventBus;
-import java.io.BufferedReader;
+import android.graphics.BitmapFactory;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 
 public class ImageAdapter {
 
-    //private final String KEY = "AIzaSyA8Lls-n0MJnRmi1dOWrTyjhTnt-g2IjKM";
-    private final String KEY = "AIzaSyB3wFBNESSIC70MhQ3xGTMaxX_4YYOnAUY";
-    //private final String CX = "010292657076463166936:6zp0sbuhuo4";
-    private final String CX = "010292657076463166936:zsfpx8vl6v4";
-    private final String SEARCH_TYPE = "image";
-    private final String SHARED_PREF = "com.example.android.lesson5googleimg.preferences";
+    public static Bitmap decodeSampledBitmapFromUrl(String url, Boolean isFullImage) throws IOException {
 
-    private static ImageAdapter mInstance;
-    private GResults results;
-    private DiskCache diskCache;
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
-    private SparseArray<Bitmap> images;
-    private int startIndex;
-    public String mQuery;
-    public Boolean NETConnection;
+        final int RECYCLER_WIDTH = 200;
+        final int RECYCLER_HEIGHT = 200;
+        final int FULL_WIDTH = 800;
+        final int FULL_HEIGHT = 800;
 
-    private ImageAdapter(Context context) {
-        results = new GResults();
-        diskCache = new DiskCache(context);
-        images = new SparseArray<>();
-        pref = context.getSharedPreferences(SHARED_PREF, Context.MODE_PRIVATE);
-        editor = pref.edit();
-    }
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(new java.net.URL(url).openStream(), null, options);
 
-    public static ImageAdapter initImageAdapter(Context context) {
-        Log.v("frag", "ImageAdapter INIT");
-        if (mInstance == null) {
-            mInstance = new ImageAdapter(context);
-        }
-        return mInstance;
-    }
-
-    public static ImageAdapter getInstance() {
-        return mInstance;
-    }
-
-    public void searchResults(String query) throws URISyntaxException, IOException {
-
-        // if str repeat - increment startIndex
-        if (mQuery != null && mQuery.equalsIgnoreCase(query)) {
-            startIndex += 10;
-            Log.v("frag", "startIndex = " + startIndex);
-            Log.v("frag", "mQuery = " + mQuery + " str = " + query);
+        // Calculate inSampleSize
+        if (isFullImage) {
+            options.inSampleSize = calculateInSampleSize(options, FULL_WIDTH, FULL_HEIGHT);
         } else {
-            Log.v("frag", "New searchResults ... mQuery = " + mQuery + " str = " + query);
-            mQuery = query;
-            startIndex = 1;
-            Log.v("frag", "images clear");
+            options.inSampleSize = calculateInSampleSize(options, RECYCLER_WIDTH, RECYCLER_HEIGHT);
         }
 
-        URL url = new URL(
-                "https://www.googleapis.com/customsearch/v1?key=" + KEY
-                        + "&cx=" + CX
-                        + "&q=" + query
-                        + "&searchType=" + SEARCH_TYPE
-                        + "&start=" + startIndex
-                        + "&alt=json"
-        );
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeStream(new java.net.URL(url).openStream(), null, options);
+    }
 
-        final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "application/json");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GResults tempRes;
-                BufferedReader br = null;
-                try {
-                    br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    tempRes = new Gson().fromJson(br, GResults.class);
-                    Log.v("frag", "searchResults do");
-                    // если это новый запрос - заменяем результаты,
-                    // если запрос повторяется добавляем результаты к существующим
-                    if (startIndex > 1)
-                        results.getItems().addAll(tempRes.getItems());
-                    else
-                        results = tempRes;
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
+    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
 
-                conn.disconnect();
-                EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
-                saveResultsToPref();
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
             }
-
-        }).start();
-
-
-    }
-
-    private void saveResultsToPref() {
-        editor.putString(mQuery, new Gson().toJson(results));
-        editor.commit();
-        Log.v("frag", "saveResultsToPref do = ");
-    }
-
-    // if no connection
-    public void getResultsFromPref(String query) {
-        String resSet = pref.getString(query, null);
-        if (resSet != null) {
-            results = new Gson().fromJson(resSet, GResults.class);
-            EventBus.getDefault().post(new MessageEvent(Messages.UPDATE_RECYCLER_VIEW));
-            mQuery = query;
-            NETConnection = false;
         }
+        return inSampleSize;
     }
-
-    public Bitmap getCache(String url) {
-        return diskCache.getBitmapFromDiskCache(getKey(url));
-    }
-
-    void putToCache(Bitmap b, String url) {
-        diskCache.put(getKey(url), b);
-    }
-
-    GResults getResults() {
-        return results;
-    }
-
-    private String getKey(String url) {
-        return url.hashCode() + "";
-    }
-
 }

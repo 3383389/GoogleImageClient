@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="@dimen/activity_horizontal_margin"
-    tools:context="com.example.android.lesson5googleimg.Fragment.SearchFragment">
+    tools:context="com.example.android.lesson5googleimg.fragment.SearchFragment">
 
     <ImageView
         android:id="@+id/google_img"

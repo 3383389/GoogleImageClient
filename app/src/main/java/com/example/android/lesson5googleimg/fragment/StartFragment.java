@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.Fragment;
+package com.example.android.lesson5googleimg.fragment;
 
 
 import android.os.Bundle;
@@ -11,12 +11,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.android.lesson5googleimg.Adapter.ImageAdapter;
-import com.example.android.lesson5googleimg.Adapter.RecyclerViewAdapter;
-import com.example.android.lesson5googleimg.EventBus.MessageEvent;
-import com.example.android.lesson5googleimg.EventBus.Messages;
+import com.example.android.lesson5googleimg.provider.ImageProvider;
+import com.example.android.lesson5googleimg.adapter.RecyclerViewAdapter;
+import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
+import com.example.android.lesson5googleimg.utils.eventBus.Messages;
 import com.example.android.lesson5googleimg.R;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -62,7 +61,7 @@ public class StartFragment extends Fragment implements View.OnClickListener {
     }
 
     private void setSearchQuery() {
-        String searchQuery = ImageAdapter.getInstance().mQuery;
+        String searchQuery = ImageProvider.getInstance().mQuery;
         if (searchQuery != null) {
             result.setText(searchQuery.replaceAll("\\+", " "));
         }
@@ -88,6 +87,11 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         mRecyclerView.setAdapter(mAdapter);
     }
 
+    public Boolean isItemVisible(int pos) {
+        return (pos >= ((GridLayoutManager)mLayoutManager).findFirstVisibleItemPosition())
+                || (pos <= ((GridLayoutManager)mLayoutManager).findLastVisibleItemPosition());
+    }
+
     @Subscribe
     public void onMessageEvent(final MessageEvent event) {
         Log.v("serv", "event ok");
@@ -106,6 +110,21 @@ public class StartFragment extends Fragment implements View.OnClickListener {
                 }).start();
                 Log.v("frag", "mAdapter.notifyDataSetChanged()");
                 break;
+            case UPDATE_ITEM:
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyItemChanged(event.position);
+                            }
+                        });
+                    }
+                }).start();
+                Log.v("frag", "mAdapter.notifyDataSetChanged()");
+                break;
+
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.EventBus;
+package com.example.android.lesson5googleimg.utils.eventBus;
 
 
 public enum Messages {
@@ -10,6 +10,7 @@ public enum Messages {
     // Actions
     SEARCH_IMG,
     UPDATE_RECYCLER_VIEW,
+    UPDATE_ITEM,
     SET_FULL_IMAGE,
 
 }

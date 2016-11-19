@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.Models;
+package com.example.android.lesson5googleimg.models;
 
 import java.util.ArrayList;
 import java.util.List;
