@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Lesson5GoogleImg</string>
-
+    <!-- Start fragment -->
     <string name="find_button">Find images in google</string>
+    <string name="not_found">Image not found</string>
 
     <!-- Search fragment -->
     <string name="hint_edit_text">введите поисковый запрос</string>

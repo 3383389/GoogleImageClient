@@ -12,6 +12,7 @@ import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.utils.eventBus.Messages;
 import com.example.android.lesson5googleimg.holder.RecyclerViewHolder;
 import com.example.android.lesson5googleimg.R;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import org.greenrobot.eventbus.EventBus;
 
@@ -33,31 +34,41 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
     }
 
     @Override
+    public void onViewAttachedToWindow(RecyclerViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+
+
+    }
+
+    @Override
     public void onBindViewHolder(RecyclerViewHolder holder, final int position) {
+
         holder.img.setImageBitmap(null);
-        String url = imageProvider.getResults().getLink(position);
+        holder.progressBar.setVisibility(View.VISIBLE);
+        holder.textError.setVisibility(View.INVISIBLE);
 
         Picasso.with(context)
-                .load(url)
+                .load(imageProvider.getResults().getLink(position))
                 .fit()
                 .centerCrop()
-                .into(holder.img);
+                .into(holder.img, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        holder.progressBar.setVisibility(View.INVISIBLE);
+                    }
 
-        //Picasso.with(context).setIndicatorsEnabled(true);
+                    @Override
+                    public void onError() {
+                        holder.progressBar.setVisibility(View.INVISIBLE);
+                        holder.textError.setVisibility(View.VISIBLE);
+                    }
+                });
 
         // if click on photo - run loading full image
-        holder.img.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.v("frag", "click on photo ok " + " on position = " + position);
-                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT, position));
-            }
+        holder.img.setOnClickListener(v -> {
+            Log.v("frag", "click on photo ok " + " on position = " + position);
+            EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT, position));
         });
-
-        // if and of list - get more photos
-        if (position == getItemCount() - 3 && imageProvider.checkConnection()) {
-            EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageProvider.mQuery));
-        }
 
     }
 
