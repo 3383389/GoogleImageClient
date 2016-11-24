@@ -17,6 +17,7 @@ import com.example.android.lesson5googleimg.adapter.RecyclerViewAdapter;
 import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.utils.eventBus.Messages;
 import com.example.android.lesson5googleimg.R;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -29,13 +30,21 @@ public class StartFragment extends Fragment implements View.OnClickListener {
     TextView result;
     Button mFindButton;
 
-
+    private boolean isLoading = false;
+    private int visibleThreshold = 10;
+    private int lastVisibleItem, totalItemCount;
 
 
     public StartFragment() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+        Log.v("frag", "start onStart");
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,9 +67,38 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         initRecyclerView(rootView);
         showImages();
 
-        Log.v("frag", "start onCreateView");
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                totalItemCount = mLayoutManager.getItemCount();
+                lastVisibleItem = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+
+                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                    EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, ImageProvider.getInstance().mQuery));
+                    isLoading = true;
+                }
+            }
+        });
 
         return rootView;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+        Log.v("frag", "start onStop");
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.find_button:
+                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_SEARCH_FRAGMENT));
+                break;
+        }
     }
 
     private void setSearchQuery() {
@@ -76,23 +114,9 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         mRecyclerView.setLayoutManager(mLayoutManager);
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.find_button:
-                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_SEARCH_FRAGMENT));
-                break;
-        }
-    }
-
     private void showImages() {
         mAdapter = new RecyclerViewAdapter(getContext());
         mRecyclerView.setAdapter(mAdapter);
-    }
-
-    public Boolean isItemVisible(int pos) {
-        return (pos >= ((GridLayoutManager)mLayoutManager).findFirstVisibleItemPosition())
-                || (pos <= ((GridLayoutManager)mLayoutManager).findLastVisibleItemPosition());
     }
 
     @Subscribe
@@ -100,30 +124,17 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         Log.v("serv", "event ok");
         switch (event.message) {
             case UPDATE_RECYCLER_VIEW:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mAdapter.notifyDataSetChanged();
-                            }
-                        });
-                    }
+                new Thread(() -> {
+                    getActivity().runOnUiThread(() -> {
+                        mAdapter.notifyDataSetChanged();
+                        isLoading = false;
+                    });
                 }).start();
                 Log.v("frag", "mAdapter.notifyDataSetChanged()");
                 break;
             case UPDATE_ITEM:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mAdapter.notifyItemChanged(event.position);
-                            }
-                        });
-                    }
+                new Thread(() -> {
+                    getActivity().runOnUiThread(() -> mAdapter.notifyItemChanged(event.position));
                 }).start();
                 Log.v("frag", "mAdapter.notifyDataSetChanged()");
                 break;
@@ -131,17 +142,4 @@ public class StartFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-        Log.v("frag", "start onStart");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-        Log.v("frag", "start onStop");
-    }
 }

@@ -46,18 +46,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
         //Picasso.with(context).setIndicatorsEnabled(true);
 
         // if click on photo - run loading full image
-        holder.img.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.v("frag", "click on photo ok " + " on position = " + position);
-                EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT, position));
-            }
+        holder.img.setOnClickListener(v -> {
+            Log.v("frag", "click on photo ok " + " on position = " + position);
+            EventBus.getDefault().post(new MessageEvent(Messages.OPEN_VIEW_IMG_FRAGMENT, position));
         });
-
-        // if and of list - get more photos
-        if (position == getItemCount() - 3 && imageProvider.checkConnection()) {
-            EventBus.getDefault().post(new MessageEvent(Messages.SEARCH_IMG, imageProvider.mQuery));
-        }
 
     }
 
