@@ -30,6 +30,8 @@ public class StartFragment extends Fragment implements View.OnClickListener {
     Button mFindButton;
 
 
+
+
     public StartFragment() {
         // Required empty public constructor
     }
