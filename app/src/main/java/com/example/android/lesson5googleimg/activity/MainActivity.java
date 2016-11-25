@@ -1,7 +1,5 @@
 package com.example.android.lesson5googleimg.activity;
 
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -9,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.example.android.lesson5googleimg.provider.ImageProvider;
 import com.example.android.lesson5googleimg.utils.eventBus.MessageEvent;
 import com.example.android.lesson5googleimg.utils.eventBus.Messages;
@@ -17,10 +14,8 @@ import com.example.android.lesson5googleimg.fragment.SearchFragment;
 import com.example.android.lesson5googleimg.fragment.StartFragment;
 import com.example.android.lesson5googleimg.fragment.ViewImageFragment;
 import com.example.android.lesson5googleimg.R;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -36,10 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             showFragment(Messages.OPEN_START_FRAGMENT, null);
-            Log.v("frag", "OPEN_START_FRAGMENT");
-        } else {
-            Log.v("frag", " NOT  OPEN_START_FRAGMENT");
-
         }
     }
 
@@ -103,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
                 if (ImageProvider.getInstance().checkConnection()) {
                     Log.v("frag", "connection ok");
                     try {
-                        ImageProvider.getInstance().searchResults(event.str);
+                        ImageProvider.getInstance().getGoogleResults(event.str);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Log.v("frag", "send searchResults ok");
+                    Log.v("frag", "send getGoogleResults ok");
                 } else {
                     Toast.makeText(this, "Проверьте соединение с интернетом", Toast.LENGTH_SHORT).show();
                     ImageProvider.getInstance().getResultsFromPref(event.str);

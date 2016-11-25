@@ -40,7 +40,6 @@ public class ViewImageFragment extends Fragment {
         Log.v("frag", "start onStart");
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,21 +79,8 @@ public class ViewImageFragment extends Fragment {
     public void onMessageEvent(final MessageEvent event) {
         switch (event.message) {
             case UPDATE_RECYCLER_VIEW:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                pagerAdapter.notifyDataSetChanged();
-                            }
-                        });
-                    }
-                }).start();
-                Log.v("frag", "pagerAdapter.notifyDataSetChanged()");
+                pagerAdapter.notifyDataSetChanged();
                 break;
         }
     }
-
-
 }

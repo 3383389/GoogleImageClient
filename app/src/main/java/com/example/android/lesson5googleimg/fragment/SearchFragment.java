@@ -45,7 +45,7 @@ public class SearchFragment extends Fragment implements View.OnClickListener {
 
         searchButton.setOnClickListener(this);
 
-        Log.v("frag", "searchResults onCreateView");
+        Log.v("frag", "getGoogleResults onCreateView");
 
         return rootView;
     }

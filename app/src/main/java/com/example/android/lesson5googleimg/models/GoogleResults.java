@@ -3,17 +3,16 @@ package com.example.android.lesson5googleimg.models;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GResults {
+public class GoogleResults {
 
     public String link;
-    public List<GResults> items;
-    public Boolean isLoading = false;
+    public List<GoogleResults> items;
 
-    public GResults() {
+    public GoogleResults() {
         items = new ArrayList<>();
     }
 
-    public List<GResults> getItems() {
+    public List<GoogleResults> getItems() {
         return items;
     }
 
