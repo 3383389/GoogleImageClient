@@ -1,4 +1,4 @@
-package com.example.android.lesson5googleimg.utils;
+package com.example.android.lesson5googleimg.Utils;
 
 import android.content.Context;
 import android.os.Build;

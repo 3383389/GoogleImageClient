@@ -1,10 +1,12 @@
-package com.example.android.lesson5googleimg.utils;
+package com.example.android.lesson5googleimg.Utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
+
+import com.example.android.lesson5googleimg.Utils.Utils;
 import com.jakewharton.disklrucache.DiskLruCache;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
